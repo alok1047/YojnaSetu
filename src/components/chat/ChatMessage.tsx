@@ -25,25 +25,40 @@ export function ChatMessage({ message, onSelectSuggestion }: ChatMessageProps) {
       {/* Assistant avatar */}
       {!isUser && (
         <div
-          className="shrink-0 w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-2xs mt-0.5"
+          className="shrink-0 w-8 h-8 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-900 shadow-2xs mt-0.5"
           aria-hidden="true"
         >
+          {/* YojnaSetu Dharma Chakra Logo */}
           <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            viewBox="0 0 100 100"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            strokeWidth="5"
+            className="text-slate-900"
           >
-            <path d="M12 8V4H8" />
-            <rect width="16" height="12" x="4" y="8" rx="2" />
-            <path d="M2 14h2" />
-            <path d="M20 14h2" />
-            <path d="M15 13v2" />
-            <path d="M9 13v2" />
+            <circle cx="50" cy="50" r="44" strokeWidth="5" />
+            <circle
+              cx="50"
+              cy="50"
+              r="14"
+              strokeWidth="5"
+              fill="currentColor"
+              fillOpacity="0.08"
+            />
+            <circle cx="50" cy="50" r="4" fill="currentColor" />
+            {Array.from({ length: 12 }).map((_, i) => (
+              <line
+                key={i}
+                x1="50"
+                y1="50"
+                x2={50 + 44 * Math.cos((i * 30 * Math.PI) / 180)}
+                y2={50 + 44 * Math.sin((i * 30 * Math.PI) / 180)}
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+            ))}
           </svg>
         </div>
       )}
@@ -55,7 +70,7 @@ export function ChatMessage({ message, onSelectSuggestion }: ChatMessageProps) {
             isUser ? 'text-right text-slate-500' : 'text-left text-slate-500'
           }`}
         >
-          {isUser ? 'You' : 'Scheme Assistant'}
+          {isUser ? 'You' : 'YojnaAi'}
         </p>
 
         {/* Message bubble */}
@@ -67,15 +82,10 @@ export function ChatMessage({ message, onSelectSuggestion }: ChatMessageProps) {
           }`}
         >
           {message.isLoading ? (
-            <div className="flex items-center gap-2.5 py-1">
-              <span className="text-slate-500 text-xs">
-                Searching verified government documents…
-              </span>
-              <div className="flex gap-1" aria-hidden="true">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce [animation-delay:0ms]" />
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce [animation-delay:300ms]" />
-              </div>
+            <div className="flex items-center gap-1.5 py-1 px-1">
+              <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:0ms]" />
+              <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:150ms]" />
+              <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:300ms]" />
             </div>
           ) : message.error ? (
             <div className="text-rose-600" role="alert">

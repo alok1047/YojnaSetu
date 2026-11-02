@@ -42,8 +42,8 @@ export function ChatComposer({
 
   const defaultPlaceholder =
     language === "HI"
-      ? "योजना सहायक से पूछें..."
-      : "Ask Scheme Assistant";
+      ? "योजना AI से पूछें..."
+      : "Ask YojnaAi";
 
   const resolvedPlaceholder = placeholder || defaultPlaceholder;
 
