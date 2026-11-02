@@ -85,8 +85,9 @@ export function getAllSchemes(): Scheme[] {
     return SAMPLE_SCHEMES;
   }
 
-  const customIds = new Set(custom.map((c) => c.id));
-  const baseFiltered = SAMPLE_SCHEMES.filter((b) => !customIds.has(b.id));
+  const baseIds = new Set(SAMPLE_SCHEMES.map((b) => b.id));
+  const baseSlugs = new Set(SAMPLE_SCHEMES.map((b) => b.slug));
+  const customFiltered = custom.filter((c) => !baseIds.has(c.id) && !baseSlugs.has(c.slug));
 
-  return [...baseFiltered, ...custom];
+  return [...SAMPLE_SCHEMES, ...customFiltered];
 }

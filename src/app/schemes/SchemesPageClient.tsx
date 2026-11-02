@@ -24,6 +24,7 @@ export function SchemesPageClient({ initialSchemes }: SchemesPageClientProps = {
   const selectedState = searchParams.get('state') || '';
   const urlQuery = searchParams.get('query') || searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(urlQuery);
+  const [displayLimit, setDisplayLimit] = useState(24);
 
   const categories = useMemo(() => {
     return Object.entries(SCHEME_CATEGORIES).map(([value, label]) => ({
@@ -138,12 +139,29 @@ export function SchemesPageClient({ initialSchemes }: SchemesPageClientProps = {
         />
 
         {filteredSchemes.length > 0 ? (
-          <section aria-label="Schemes catalog" className="pt-2">
+          <section aria-label="Schemes catalog" className="pt-2 space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredSchemes.map((scheme) => (
+              {filteredSchemes.slice(0, displayLimit).map((scheme) => (
                 <SchemeCard key={scheme.id} scheme={scheme} />
               ))}
             </div>
+
+            {filteredSchemes.length > displayLimit && (
+              <div className="pt-4 pb-6 flex flex-col items-center justify-center gap-2">
+                <p className="text-xs text-[var(--color-muted)] font-medium">
+                  {language === 'HI'
+                    ? `${filteredSchemes.length} में से ${Math.min(displayLimit, filteredSchemes.length)} योजनाएं प्रदर्शित`
+                    : `Showing ${Math.min(displayLimit, filteredSchemes.length)} of ${filteredSchemes.length} schemes`}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setDisplayLimit((prev) => prev + 24)}
+                  className="px-6 py-2.5 rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-accent-soft)] text-[var(--color-text)] text-sm font-semibold transition-all shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+                >
+                  {language === 'HI' ? 'और योजनाएं देखें' : 'Load More Schemes'}
+                </button>
+              </div>
+            )}
           </section>
         ) : (
           <div className="pt-4">

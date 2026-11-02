@@ -42,3 +42,4 @@ next-env.d.ts
 
 # vector store data
 data/vector-store.json
+data/raw-myscheme.json
