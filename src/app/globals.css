@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg: #F7F8F6;
+  --color-surface: #FFFFFF;
+  --color-text: #17212B;
+  --color-muted: #5D6872;
+  --color-border: #DCE2E0;
+  --color-primary: #176B5B;
+  --color-primary-hover: #105447;
+  --color-accent-soft: #E6F2EE;
+  --color-warning: #8A5A00;
+  --color-warning-soft: #FFF3D8;
+  --color-danger: #A83232;
+  --color-danger-soft: #FCEAEA;
+  --radius-card: 16px;
+  --radius-control: 10px;
+  --shadow-card: 0 4px 18px rgba(23, 33, 43, 0.05);
+}
+
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+  --color-surface: var(--color-surface);
+  --color-muted: var(--color-muted);
+  --color-border: var(--color-border);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-warning: var(--color-warning);
+  --color-warning-soft: var(--color-warning-soft);
+  --color-danger: var(--color-danger);
+  --color-danger-soft: var(--color-danger-soft);
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Skip to main content link */
+.skip-link {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-link:focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-primary);
+  color: white;
+  z-index: 100;
+  font-weight: 600;
+}
+
+/* 360 Slow Rotation for the Indian State Emblem */
+@keyframes rotate-emblem-360 {
+  0% {
+    transform: perspective(700px) rotateY(0deg);
+  }
+  100% {
+    transform: perspective(700px) rotateY(360deg);
+  }
+}
+
+.animate-emblem-rotate {
+  animation: rotate-emblem-360 16s linear infinite;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.animate-emblem-rotate:hover {
+  animation-play-state: paused;
+}
+
