@@ -241,6 +241,18 @@ export function AskPageClient() {
           'What documents are needed for scholarship?',
         ];
 
+  // Keyboard shortcut: Alt+N / Option+N for New Chat
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        handleNewChat();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleNewChat]);
+
   const sessionMetas: ChatSessionMeta[] = sessions.map((s) => ({
     id: s.id,
     title: s.title,
@@ -248,7 +260,10 @@ export function AskPageClient() {
   }));
 
   return (
-    <div className="flex flex-1 h-[calc(100vh-4.25rem)] overflow-hidden bg-slate-50 text-slate-900">
+    <div
+      style={{ height: 'calc(100dvh - 4.5rem)', minHeight: 'calc(100dvh - 4.5rem)' }}
+      className="flex flex-1 w-full overflow-hidden bg-slate-50 text-slate-900"
+    >
       {/* ================= LEFT SIDE PANEL: NEW CHAT & HISTORY ================= */}
       <ChatSidebar
         isOpen={isSidebarOpen}
