@@ -135,31 +135,29 @@ export function AskPageClient() {
 
   return (
     <div className="flex flex-col flex-1 min-h-[calc(100vh-4.25rem)] bg-slate-50 text-slate-900">
-      {/* Subtle top header bar (Light Mode) */}
-      <header className="border-b border-slate-200 bg-white/90 backdrop-blur-md px-4 py-3 sm:px-6 sticky top-0 z-10 shadow-xs">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <h1 className="text-sm sm:text-base font-semibold text-slate-900">
-              {language === 'HI' ? 'योजना सेतु सहायक' : 'Ask Scheme Assistant'}
-            </h1>
-            <span className="hidden sm:inline-block text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono font-medium">
-              RAG AI
-            </span>
-          </div>
-          {messages.length > 0 && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleResetConversation}
-              className="text-xs text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 rounded-full px-3.5 py-1 transition-colors"
+      {/* Subtle floating New chat button when chatting */}
+      {messages.length > 0 && (
+        <div className="sticky top-2 z-20 flex justify-end max-w-3xl mx-auto w-full px-4 pt-2">
+          <button
+            type="button"
+            onClick={handleResetConversation}
+            className="text-xs bg-white/90 hover:bg-slate-100 backdrop-blur-md text-slate-700 hover:text-slate-900 border border-slate-200 shadow-xs rounded-full px-3.5 py-1.5 transition-all flex items-center gap-1.5 cursor-pointer font-medium"
+          >
+            <svg
+              className="w-3.5 h-3.5 text-slate-500"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              {language === 'HI' ? 'नई चैट' : 'New chat'}
-            </Button>
-          )}
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span>{language === 'HI' ? 'नई चैट' : 'New chat'}</span>
+          </button>
         </div>
-      </header>
+      )}
 
       {/* Main chat viewport */}
       {messages.length === 0 ? (
