@@ -153,7 +153,8 @@ export function ChatComposer({
             placeholder={resolvedPlaceholder}
             maxLength={2000}
             disabled={isLoading}
-            className="flex-1 bg-transparent text-slate-900 placeholder:text-slate-400 text-sm sm:text-base outline-none resize-none px-3 py-1.5 max-h-32 leading-relaxed"
+            className="flex-1 bg-transparent text-slate-900 placeholder:text-slate-400 text-sm sm:text-base outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 border-none resize-none px-3 py-1.5 max-h-32 leading-relaxed shadow-none"
+            style={{ outline: "none", border: "none", boxShadow: "none" }}
             aria-label="Question prompt"
           />
 
