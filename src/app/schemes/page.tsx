@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { getAllSchemes } from '@/lib/data/custom-schemes';
 import { SchemesPageClient } from './SchemesPageClient';
 
 export const metadata: Metadata = {
@@ -9,9 +10,10 @@ export const metadata: Metadata = {
 };
 
 export default function SchemesPage() {
+  const schemes = getAllSchemes();
   return (
     <Suspense fallback={null}>
-      <SchemesPageClient />
+      <SchemesPageClient initialSchemes={schemes} />
     </Suspense>
   );
 }

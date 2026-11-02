@@ -6,12 +6,18 @@ import { PageContainer, PageHeading, EmptyState, DisclaimerNotice } from '@/comp
 import { SchemeCard, SchemeFilters } from '@/components/schemes';
 import { SAMPLE_SCHEMES, INDIAN_STATES, SCHEME_CATEGORIES } from '@/lib/data/sample-schemes';
 import { useLanguage } from '@/lib/context/LanguageContext';
+import type { Scheme } from '@/lib/types';
 
-export function SchemesPageClient() {
+interface SchemesPageClientProps {
+  initialSchemes?: Scheme[];
+}
+
+export function SchemesPageClient({ initialSchemes }: SchemesPageClientProps = {}) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const { language } = useLanguage();
+  const allSchemes = initialSchemes && initialSchemes.length > 0 ? initialSchemes : SAMPLE_SCHEMES;
 
   // Read filters directly from URL search parameters as single source of truth
   const selectedCategory = searchParams.get('category') || '';
@@ -27,7 +33,7 @@ export function SchemesPageClient() {
   }, []);
 
   const filteredSchemes = useMemo(() => {
-    return SAMPLE_SCHEMES.filter((scheme) => {
+    return allSchemes.filter((scheme) => {
       // Search query filtering across name, summary, and department
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
@@ -62,7 +68,7 @@ export function SchemesPageClient() {
 
       return true;
     });
-  }, [searchQuery, selectedCategory, selectedState]);
+  }, [searchQuery, selectedCategory, selectedState, allSchemes]);
 
   // Update URL helper when filters change
   const updateUrlParams = useCallback(
