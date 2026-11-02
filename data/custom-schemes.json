@@ -1,0 +1,210 @@
+[
+  {
+    "id": "scheme-pm-vishwakarma-mvzntb8z",
+    "name": "PM Vishwakarma Yojana",
+    "slug": "pm-vishwakarma",
+    "summary": "Holistic financial, training, and marketing support for traditional artisans including collateral-free loans up to ₹3,00,000 at 5% interest and ₹15,000 toolkit incentive.",
+    "description": "PM Vishwakarma is a Central Sector Scheme launched to provide end-to-end support to artisans and craftspeople who work with their hands and tools. The scheme covers 18 traditional trades such as carpenters, blacksmiths, potters, cobblers, tailors, and weavers. It provides PM Vishwakarma Certificate & ID Card, basic and advanced skill training with a ₹500/day stipend, ₹15,000 modern toolkit grant, and collateral-free enterprise credit of up to ₹3 lakh in two tranches at a concessional interest rate of 5%.",
+    "category": "employment",
+    "department": "Ministry of Micro, Small and Medium Enterprises",
+    "jurisdiction": "Central",
+    "targetGroup": "Traditional artisans and craftspeople across 18 designated trades",
+    "status": "active",
+    "isSampleData": false,
+    "benefits": [
+      "Collateral-free enterprise loan: Tranche 1 of up to ₹1,00,000 and Tranche 2 of up to ₹2,00,000 at 5% interest.",
+      "Toolkit Incentive: Modern toolkit incentive grant of ₹15,000 upon skill training completion.",
+      "Skill Upgradation: 5-7 days basic training and 15 days advanced training with ₹500/day daily stipend.",
+      "Recognition: Official PM Vishwakarma Certificate and Digital ID Card.",
+      "Digital Transaction Incentive: ₹1 per transaction up to 100 transactions per month."
+    ],
+    "requiredDocuments": [
+      "Aadhaar Card with active mobile linkage",
+      "Active bank account passbook details",
+      "Ration Card or Family details",
+      "Trade declaration or artisan certificate"
+    ],
+    "applicationSteps": [
+      "Step 1: Visit nearest Common Service Centre (CSC) or register online at pmvishwakarma.gov.in.",
+      "Step 2: Biometric authentication via Aadhaar and verification of family trade.",
+      "Step 3: Gram Panchayat / Urban Local Body verification of artisan status.",
+      "Step 4: Receive PM Vishwakarma ID card and complete 5-day basic skill training.",
+      "Step 5: Receive ₹15,000 toolkit voucher and apply for Tranche 1 loan."
+    ],
+    "eligibilityCriteria": [
+      {
+        "id": "crit-pv-001",
+        "field": "traditional_trade",
+        "label": "Traditional Trade Artisan",
+        "description": "Engaged in one of the 18 eligible traditional family-based crafts (e.g. carpenter, blacksmith, potter, tailor, cobbler).",
+        "type": "occupation",
+        "required": true,
+        "operator": "in",
+        "value": [
+          "Carpenter",
+          "Blacksmith",
+          "Potter",
+          "Sculptor",
+          "Cobbler",
+          "Mason",
+          "Tailor",
+          "Barber",
+          "Washerman",
+          "Weaver"
+        ]
+      },
+      {
+        "id": "crit-pv-002",
+        "field": "age",
+        "label": "Minimum Age",
+        "description": "Applicant must be at least 18 years of age on date of registration.",
+        "type": "age_range",
+        "required": true,
+        "operator": "gte",
+        "value": 18
+      }
+    ],
+    "sources": [
+      {
+        "documentId": "doc-pm-vishwakarma",
+        "title": "PM Vishwakarma Yojana Official Guidelines",
+        "sourceUrl": "https://pmvishwakarma.gov.in",
+        "department": "Ministry of Micro, Small and Medium Enterprises",
+        "publicationDate": "2026-11-02"
+      }
+    ],
+    "officialUrl": "https://pmvishwakarma.gov.in",
+    "effectiveDate": "2026-11-02",
+    "lastVerifiedDate": "2026-11-02"
+  },
+  {
+    "id": "scheme-pmay-urban-2-mvzntb90",
+    "name": "Pradhan Mantri Awas Yojana - Urban (PMAY-U 2.0)",
+    "slug": "pmay-urban-2",
+    "summary": "Affordable housing scheme providing interest subsidies of up to ₹1.80 lakh and construction financial assistance of up to ₹2.5 lakh for 1 crore urban families.",
+    "description": "PMAY-U 2.0 addresses the housing shortage in urban areas by providing financial assistance to Economically Weaker Sections (EWS), Low Income Groups (LIG), and Middle Income Groups (MIG) to construct, purchase, or rent pucca houses with basic amenities like water, sanitation, and electricity.",
+    "category": "housing",
+    "department": "Ministry of Housing and Urban Affairs",
+    "jurisdiction": "Central",
+    "targetGroup": "Urban poor, EWS, LIG, and Middle Income Families without a pucca house",
+    "status": "active",
+    "isSampleData": false,
+    "benefits": [
+      "Interest Subsidy: Up to ₹1.80 lakh on home loans for up to 5-year tenure under Credit Linked Subsidy.",
+      "Beneficiary-Led Construction: Direct financial assistance of ₹2.5 lakh per house for EWS families.",
+      "Affordable Rental Housing: Quality rental accommodation for urban migrants and students.",
+      "Basic Civics: 100% water, electricity, LPG, and toilet connections bundled."
+    ],
+    "requiredDocuments": [
+      "Aadhaar cards of all family members",
+      "Income certificate from revenue authority",
+      "Land title or municipal residence proof",
+      "Bank passbook with DBT linkage"
+    ],
+    "applicationSteps": [
+      "Step 1: Check eligibility and register on pmay-urban.gov.in or at municipal office.",
+      "Step 2: Choose component: Credit Linked Subsidy or Beneficiary Led Construction.",
+      "Step 3: Geo-tagging and site inspection by municipal engineers.",
+      "Step 4: Central and State subsidy released directly to bank account in 3 construction milestones."
+    ],
+    "eligibilityCriteria": [
+      {
+        "id": "crit-pmay-001",
+        "field": "pucca_house_ownership",
+        "label": "No Existing Pucca House",
+        "description": "Applicant or family members must not own a pucca house anywhere in India.",
+        "type": "boolean",
+        "required": true,
+        "operator": "eq",
+        "value": false
+      },
+      {
+        "id": "crit-pmay-002",
+        "field": "annual_family_income",
+        "label": "Urban Income Cap",
+        "description": "Family income must not exceed ₹3 lakh (EWS), ₹6 lakh (LIG), or ₹9 lakh (MIG).",
+        "type": "income_range",
+        "required": true,
+        "operator": "lte",
+        "value": 900000
+      }
+    ],
+    "sources": [
+      {
+        "documentId": "doc-pmay-urban-2",
+        "title": "Pradhan Mantri Awas Yojana - Urban (PMAY-U 2.0) Official Guidelines",
+        "sourceUrl": "https://pmay-urban.gov.in",
+        "department": "Ministry of Housing and Urban Affairs",
+        "publicationDate": "2026-11-02"
+      }
+    ],
+    "officialUrl": "https://pmay-urban.gov.in",
+    "effectiveDate": "2026-11-02",
+    "lastVerifiedDate": "2026-11-02"
+  },
+  {
+    "id": "scheme-sukanya-samriddhi-yojana-mvzntb90",
+    "name": "Sukanya Samriddhi Yojana",
+    "slug": "sukanya-samriddhi-yojana",
+    "summary": "Government-backed savings scheme for girl child offering high interest rate of 8.2% per annum, complete tax exemption under Section 80C, and maturity on 21 years.",
+    "description": "Sukanya Samriddhi Account (SSA) is a small deposit scheme by the Government of India launched under the Beti Bachao Beti Padhao campaign. It enables parents to build a dedicated financial fund for the girl child's higher education and marriage with guaranteed sovereign returns and Triple Tax Exemption (EEE).",
+    "category": "women_children",
+    "department": "Department of Posts / Ministry of Finance",
+    "jurisdiction": "Central",
+    "targetGroup": "Girl children below 10 years of age and their parents/legal guardians",
+    "status": "active",
+    "isSampleData": false,
+    "benefits": [
+      "High Interest Rate: Sovereign guaranteed interest of 8.2% per annum compounded annually.",
+      "Triple Tax Benefit (EEE): Investment exempt under 80C, interest earned is tax-free, maturity amount is completely tax-free.",
+      "Low Minimum Deposit: Start with just ₹250 per year up to ₹1.5 lakh maximum annually.",
+      "Partial Withdrawal: Up to 50% withdrawal allowed after girl child turns 18 for higher education."
+    ],
+    "requiredDocuments": [
+      "Birth certificate of the girl child",
+      "Identity proof (Aadhaar/PAN) of parent or legal guardian",
+      "Address proof of parent or guardian",
+      "Two passport photographs of parent and girl child"
+    ],
+    "applicationSteps": [
+      "Step 1: Visit any Post Office or authorized commercial bank branch.",
+      "Step 2: Fill Form SSA-1 with girl child and guardian details.",
+      "Step 3: Submit birth certificate, identity proof, and initial deposit (minimum ₹250).",
+      "Step 4: Receive Sukanya Samriddhi passbook with account number."
+    ],
+    "eligibilityCriteria": [
+      {
+        "id": "crit-ssy-001",
+        "field": "girl_child_age",
+        "label": "Girl Child Age",
+        "description": "Account can be opened from the birth of the girl child until she turns 10 years old.",
+        "type": "age_range",
+        "required": true,
+        "operator": "lte",
+        "value": 10
+      },
+      {
+        "id": "crit-ssy-002",
+        "field": "account_limit_per_family",
+        "label": "Maximum 2 Accounts Per Family",
+        "description": "Only one account per girl child and maximum two girl children per family (exceptions for triplets/twins).",
+        "type": "boolean",
+        "required": true,
+        "operator": "eq",
+        "value": true
+      }
+    ],
+    "sources": [
+      {
+        "documentId": "doc-sukanya-samriddhi-yojana",
+        "title": "Sukanya Samriddhi Yojana Official Guidelines",
+        "sourceUrl": "https://www.indiapost.gov.in",
+        "department": "Department of Posts / Ministry of Finance",
+        "publicationDate": "2026-11-02"
+      }
+    ],
+    "officialUrl": "https://www.indiapost.gov.in",
+    "effectiveDate": "2026-11-02",
+    "lastVerifiedDate": "2026-11-02"
+  }
+]

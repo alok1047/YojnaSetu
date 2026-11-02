@@ -93,6 +93,10 @@ export function AdminPageClient() {
   const [isUploadingDocPdf, setIsUploadingDocPdf] = useState(false);
   const [docPdfError, setDocPdfError] = useState<string | null>(null);
 
+  // Bulk JSON Import State
+  const [isBulkImporting, setIsBulkImporting] = useState(false);
+  const [bulkImportError, setBulkImportError] = useState<string | null>(null);
+
   const fetchStatusAndSchemes = useCallback(async (key: string) => {
     setIsLoadingStatus(true);
     try {
@@ -299,6 +303,52 @@ export function AdminPageClient() {
       setDocPdfError(err instanceof Error ? err.message : 'Failed to parse document PDF');
     } finally {
       setIsUploadingDocPdf(false);
+      e.target.value = '';
+    }
+  };
+
+  // Bulk import multiple schemes from JSON file
+  const handleBulkJsonUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsBulkImporting(true);
+    setBulkImportError(null);
+
+    try {
+      const text = await file.text();
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        throw new Error('Selected file is not valid JSON. Please check file formatting.');
+      }
+
+      const res = await fetch('/api/admin/schemes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': adminKey,
+        },
+        body: JSON.stringify(parsed),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to bulk import schemes');
+      }
+
+      const count = data.count || (data.scheme ? 1 : 0);
+      setFeedbackNotice({
+        type: 'success',
+        message: `Successfully bulk-imported and vector-indexed ${count} schemes (${data.chunksIngested} vector chunks)!`,
+      });
+
+      fetchStatusAndSchemes(adminKey);
+    } catch (err) {
+      setBulkImportError(err instanceof Error ? err.message : 'Failed to import JSON dataset');
+    } finally {
+      setIsBulkImporting(false);
       e.target.value = '';
     }
   };
@@ -767,6 +817,51 @@ export function AdminPageClient() {
                 </div>
               )}
             </div>
+
+            {/* Bulk Dataset JSON Import Option */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5">
+                <Database className="w-4 h-4 text-emerald-700 shrink-0" />
+                <div>
+                  <span className="font-semibold text-slate-800">Bulk Dataset Import (JSON): </span>
+                  <span className="text-slate-600">
+                    Have 50+ or 500+ schemes in a JSON file? Upload the dataset here to batch-validate and vector-index all of them in one click.
+                  </span>
+                </div>
+              </div>
+              <label
+                htmlFor="bulk-json-upload"
+                className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer shadow-2xs transition-colors shrink-0 ${
+                  isBulkImporting ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {isBulkImporting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                    <span>Importing & Indexing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Upload Schemes JSON</span>
+                  </>
+                )}
+                <input
+                  id="bulk-json-upload"
+                  type="file"
+                  accept=".json,application/json"
+                  disabled={isBulkImporting}
+                  onChange={handleBulkJsonUpload}
+                  className="sr-only"
+                />
+              </label>
+            </div>
+            {bulkImportError && (
+              <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{bulkImportError}</span>
+              </div>
+            )}
 
             <div className="flex items-center gap-3 pt-2">
               <div className="h-px bg-slate-200 flex-1" />

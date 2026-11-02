@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllSchemes, getCustomSchemes, saveCustomScheme, deleteCustomScheme } from '@/lib/data/custom-schemes';
+import { getAllSchemes, getCustomSchemes, saveCustomSchemes, deleteCustomScheme } from '@/lib/data/custom-schemes';
 import { ingestSchemes } from '@/lib/ingestion/ingest';
-import type { Scheme } from '@/lib/types';
+import type { Scheme, SchemeCategory } from '@/lib/types';
 
 function checkAuth(request: NextRequest): boolean {
   const secret = process.env.ADMIN_SECRET || 'admin123';
@@ -25,69 +25,127 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ schemes: schemesWithCustomFlag });
 }
 
+interface SchemeInput {
+  id?: string;
+  name: string;
+  slug?: string;
+  category: SchemeCategory;
+  department: string;
+  jurisdiction?: string;
+  targetGroup?: string;
+  summary: string;
+  description?: string;
+  benefits?: string[] | string;
+  requiredDocuments?: string[] | string;
+  applicationSteps?: string[] | string;
+  eligibilityCriteria?: Scheme['eligibilityCriteria'];
+  sources?: Scheme['sources'];
+  sourceTitle?: string;
+  officialUrl?: string;
+  effectiveDate?: string;
+}
+
+function normalizeSchemeInput(body: SchemeInput): Scheme {
+  const slug =
+    body.slug?.trim() ||
+    body.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+  const id = body.id || `scheme-${slug}-${Date.now().toString(36)}`;
+
+  return {
+    id,
+    name: body.name.trim(),
+    slug,
+    summary: body.summary.trim(),
+    description: body.description?.trim() || body.summary.trim(),
+    category: body.category,
+    department: body.department.trim(),
+    jurisdiction: body.jurisdiction?.trim() || 'Central',
+    targetGroup: body.targetGroup?.trim() || 'Citizens of India',
+    status: 'active',
+    isSampleData: false,
+    benefits: Array.isArray(body.benefits) ? body.benefits : (body.benefits || '').split('\n').filter(Boolean),
+    requiredDocuments: Array.isArray(body.requiredDocuments) ? body.requiredDocuments : (body.requiredDocuments || '').split('\n').filter(Boolean),
+    applicationSteps: Array.isArray(body.applicationSteps) ? body.applicationSteps : (body.applicationSteps || '').split('\n').filter(Boolean),
+    eligibilityCriteria: Array.isArray(body.eligibilityCriteria) ? body.eligibilityCriteria : [],
+    sources: Array.isArray(body.sources) && body.sources.length > 0 ? body.sources : [
+      {
+        documentId: `doc-${slug}`,
+        title: body.sourceTitle || `${body.name} Official Guidelines`,
+        sourceUrl: body.officialUrl || '',
+        department: body.department,
+        publicationDate: new Date().toISOString().split('T')[0],
+      },
+    ],
+    officialUrl: body.officialUrl?.trim() || undefined,
+    effectiveDate: body.effectiveDate || new Date().toISOString().split('T')[0],
+    lastVerifiedDate: new Date().toISOString().split('T')[0],
+  };
+}
+
 export async function POST(request: NextRequest) {
   if (!checkAuth(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const body = await request.json();
+    const rawBody = await request.json();
 
-    if (!body.name || !body.category || !body.department || !body.summary) {
+    // Check if bulk array or single object
+    const rawList: unknown[] = Array.isArray(rawBody)
+      ? rawBody
+      : Array.isArray((rawBody as { schemes?: unknown[] }).schemes)
+      ? ((rawBody as { schemes: unknown[] }).schemes)
+      : [rawBody];
+
+    if (rawList.length === 0) {
+      return NextResponse.json({ error: 'No scheme data provided.' }, { status: 400 });
+    }
+
+    const validSchemes: Scheme[] = [];
+    for (const item of rawList) {
+      const typed = item as Partial<SchemeInput>;
+      if (!typed?.name || !typed?.category || !typed?.department || !typed?.summary) {
+        if (rawList.length === 1) {
+          return NextResponse.json(
+            { error: 'Missing required scheme fields (name, category, department, summary).' },
+            { status: 400 }
+          );
+        }
+        continue;
+      }
+      validSchemes.push(normalizeSchemeInput(typed as SchemeInput));
+    }
+
+    if (validSchemes.length === 0) {
       return NextResponse.json(
-        { error: 'Missing required scheme fields (name, category, department, summary).' },
+        { error: 'None of the provided schemes passed validation (name, category, department, summary required).' },
         { status: 400 }
       );
     }
 
-    const slug =
-      body.slug?.trim() ||
-      body.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-
-    const id = body.id || `scheme-${slug}-${Date.now().toString(36)}`;
-
-    const newScheme: Scheme = {
-      id,
-      name: body.name.trim(),
-      slug,
-      summary: body.summary.trim(),
-      description: body.description?.trim() || body.summary.trim(),
-      category: body.category,
-      department: body.department.trim(),
-      jurisdiction: body.jurisdiction?.trim() || 'Central',
-      targetGroup: body.targetGroup?.trim() || 'Citizens of India',
-      status: 'active',
-      isSampleData: false,
-      benefits: Array.isArray(body.benefits) ? body.benefits : (body.benefits || '').split('\n').filter(Boolean),
-      requiredDocuments: Array.isArray(body.requiredDocuments) ? body.requiredDocuments : (body.requiredDocuments || '').split('\n').filter(Boolean),
-      applicationSteps: Array.isArray(body.applicationSteps) ? body.applicationSteps : (body.applicationSteps || '').split('\n').filter(Boolean),
-      eligibilityCriteria: Array.isArray(body.eligibilityCriteria) ? body.eligibilityCriteria : [],
-      sources: Array.isArray(body.sources) && body.sources.length > 0 ? body.sources : [
-        {
-          documentId: `doc-${slug}`,
-          title: body.sourceTitle || `${body.name} Official Guidelines`,
-          sourceUrl: body.officialUrl || '',
-          department: body.department,
-          publicationDate: new Date().toISOString().split('T')[0],
-        },
-      ],
-      officialUrl: body.officialUrl?.trim() || undefined,
-      effectiveDate: body.effectiveDate || new Date().toISOString().split('T')[0],
-      lastVerifiedDate: new Date().toISOString().split('T')[0],
-    };
-
-    // 1. Save scheme in persistent store
-    saveCustomScheme(newScheme);
+    // 1. Save schemes to persistent store
+    saveCustomSchemes(validSchemes);
 
     // 2. Ingest and vector-embed immediately
-    const ingestResult = await ingestSchemes([newScheme]);
+    const ingestResult = await ingestSchemes(validSchemes);
+
+    if (rawList.length === 1 && !Array.isArray(rawBody) && !Array.isArray(rawBody.schemes)) {
+      return NextResponse.json({
+        success: true,
+        scheme: validSchemes[0],
+        chunksIngested: ingestResult.chunksIngested,
+        errors: ingestResult.errors,
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      scheme: newScheme,
+      count: validSchemes.length,
+      schemes: validSchemes,
       chunksIngested: ingestResult.chunksIngested,
       errors: ingestResult.errors,
     });

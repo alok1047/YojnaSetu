@@ -7,7 +7,9 @@
  *   npm run ingest
  */
 
-import 'dotenv/config';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+dotenv.config();
 import { SAMPLE_SCHEMES } from '@/lib/data/sample-schemes';
 import { ingestSchemes } from '@/lib/ingestion/ingest';
 import { getVectorStore } from '@/lib/vectorstore';

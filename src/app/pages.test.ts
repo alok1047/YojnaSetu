@@ -25,8 +25,11 @@ describe('App Router Pages', () => {
   describe('Scheme Detail (/schemes/[slug])', () => {
     it('generates static params for all sample schemes', async () => {
       const params = await generateStaticParams();
-      expect(params).toHaveLength(SAMPLE_SCHEMES.length);
-      expect(params.map((p) => p.slug)).toEqual(SAMPLE_SCHEMES.map((s) => s.slug));
+      expect(params.length).toBeGreaterThanOrEqual(SAMPLE_SCHEMES.length);
+      const paramSlugs = params.map((p) => p.slug);
+      SAMPLE_SCHEMES.forEach((s) => {
+        expect(paramSlugs).toContain(s.slug);
+      });
     });
 
     it('generates metadata for a valid scheme', async () => {

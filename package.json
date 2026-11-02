@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "ingest": "tsx scripts/ingest.ts"
+    "ingest": "tsx scripts/ingest.ts",
+    "import-schemes": "tsx scripts/bulk-import-schemes.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.0",

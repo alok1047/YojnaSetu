@@ -26,18 +26,34 @@ export function getCustomSchemes(): Scheme[] {
  * Save or append a new custom scheme.
  */
 export function saveCustomScheme(scheme: Scheme): void {
+  saveCustomSchemes([scheme]);
+}
+
+/**
+ * Save or append multiple custom schemes in a single disk write.
+ */
+export function saveCustomSchemes(schemes: Scheme[]): void {
   const dir = path.dirname(CUSTOM_SCHEMES_FILE);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 
   const existing = getCustomSchemes();
-  const index = existing.findIndex((s) => s.id === scheme.id || s.slug === scheme.slug);
+  const indexMap = new Map<string, number>();
+  existing.forEach((s, idx) => {
+    indexMap.set(s.id, idx);
+    indexMap.set(s.slug, idx);
+  });
 
-  if (index >= 0) {
-    existing[index] = scheme;
-  } else {
-    existing.push(scheme);
+  for (const s of schemes) {
+    const idx = indexMap.get(s.id) ?? indexMap.get(s.slug);
+    if (idx !== undefined && idx >= 0) {
+      existing[idx] = s;
+    } else {
+      existing.push(s);
+      indexMap.set(s.id, existing.length - 1);
+      indexMap.set(s.slug, existing.length - 1);
+    }
   }
 
   fs.writeFileSync(CUSTOM_SCHEMES_FILE, JSON.stringify(existing, null, 2), 'utf-8');
