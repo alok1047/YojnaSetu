@@ -39,17 +39,17 @@ export function ChatSidebar({
       aria-label="Chat history sidebar"
     >
       {/* Top action bar: New Chat + Collapse button */}
-      <div className="p-3.5 flex items-center gap-2 border-b border-slate-200/70">
+      <div className="p-3 flex items-center gap-2">
         <button
           type="button"
           onClick={onNewChat}
-          className="flex-1 flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-800 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+          className="flex-1 flex items-center justify-between gap-2 px-3 py-2 text-xs font-medium text-slate-800 hover:bg-slate-200/60 rounded-xl transition-all cursor-pointer group"
         >
           <div className="flex items-center gap-2">
-            <Plus className="w-4 h-4 text-slate-600 group-hover:text-blue-600 transition-colors" />
+            <Plus className="w-4 h-4 text-slate-600 group-hover:text-slate-900 transition-colors" />
             <span>{language === 'HI' ? 'नई चैट' : 'New chat'}</span>
           </div>
-          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-100 rounded border border-slate-200">
+          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-200/50 rounded">
             Alt+N
           </kbd>
         </button>
