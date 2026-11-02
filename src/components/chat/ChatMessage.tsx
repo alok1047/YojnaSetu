@@ -18,7 +18,7 @@ export function ChatMessage({ message, onSelectSuggestion }: ChatMessageProps) {
       {/* Assistant avatar */}
       {!isUser && (
         <div
-          className="shrink-0 w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400"
+          className="shrink-0 w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-2xs"
           aria-hidden="true"
         >
           <svg
@@ -45,7 +45,7 @@ export function ChatMessage({ message, onSelectSuggestion }: ChatMessageProps) {
         {/* Message label */}
         <p
           className={`text-[11px] font-medium mb-1 ${
-            isUser ? "text-right text-slate-400" : "text-left text-slate-400"
+            isUser ? "text-right text-slate-500" : "text-left text-slate-500"
           }`}
         >
           {isUser ? "You" : "Scheme Assistant"}
@@ -55,25 +55,25 @@ export function ChatMessage({ message, onSelectSuggestion }: ChatMessageProps) {
         <div
           className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
             isUser
-              ? "bg-[#1d6ee5] text-white rounded-br-md shadow-md"
-              : "bg-[#181b26] border border-white/10 text-slate-100 rounded-bl-md shadow-sm"
+              ? "bg-blue-600 text-white rounded-br-md shadow-xs"
+              : "bg-white border border-slate-200 text-slate-900 rounded-bl-md shadow-xs"
           }`}
         >
           {message.isLoading ? (
             <div className="flex items-center gap-2.5 py-1">
-              <span className="text-slate-300 text-xs">
+              <span className="text-slate-500 text-xs">
                 Searching verified government documents…
               </span>
               <div className="flex gap-1" aria-hidden="true">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce [animation-delay:0ms]" />
+                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce [animation-delay:300ms]" />
               </div>
             </div>
           ) : message.error ? (
-            <div className="text-rose-400" role="alert">
+            <div className="text-rose-600" role="alert">
               <p className="font-semibold text-xs sm:text-sm">Unable to complete request</p>
-              <p className="text-xs mt-1 opacity-90">{message.error}</p>
+              <p className="text-xs mt-1 text-rose-500">{message.error}</p>
             </div>
           ) : (
             <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
@@ -83,7 +83,7 @@ export function ChatMessage({ message, onSelectSuggestion }: ChatMessageProps) {
         {/* Citations */}
         {!isUser && message.citations && message.citations.length > 0 && (
           <div className="mt-3" aria-label="Sources">
-            <p className="text-xs font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
+            <p className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
               <span>Verified Sources ({message.citations.length})</span>
             </p>
             <div className="space-y-2">
@@ -102,7 +102,7 @@ export function ChatMessage({ message, onSelectSuggestion }: ChatMessageProps) {
                 key={idx}
                 type="button"
                 onClick={() => onSelectSuggestion?.(suggestion)}
-                className="text-xs px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-full border border-white/10 transition-colors"
+                className="text-xs px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 rounded-full border border-slate-200 shadow-2xs transition-colors cursor-pointer"
               >
                 {suggestion}
               </button>
@@ -114,7 +114,7 @@ export function ChatMessage({ message, onSelectSuggestion }: ChatMessageProps) {
       {/* User avatar */}
       {isUser && (
         <div
-          className="shrink-0 w-8 h-8 rounded-full bg-[#1d6ee5] flex items-center justify-center text-white shadow-sm"
+          className="shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-2xs"
           aria-hidden="true"
         >
           <svg

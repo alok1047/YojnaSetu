@@ -57,7 +57,48 @@ export async function generateRAGAnswer(
   // Step 2: Build citations from retrieved chunks (server-mapped, not LLM-generated)
   const citations = chunksToCitations(retrievedChunks);
 
-  // Step 3: Check if we have enough context
+  // Step 3: Handle greetings or check if we have enough context
+  const GREETING_REGEX = /^(hi|hello|hey|namaste|greetings|help|what can you do|who are you|how can you help|kya kar sakte ho|intro)[!?.]*$/i;
+  const isGreeting = GREETING_REGEX.test(question.trim().toLowerCase());
+
+  if (isGreeting) {
+    try {
+      const provider = createAIProvider();
+      const response = await provider.complete({
+        systemPrompt:
+          'You are YojnaSetu AI, an expert, polite assistant for Indian Government Welfare Schemes. Respond warmly to the citizen greeting, briefly introduce how you help citizens find welfare schemes, check eligibility, and understand application steps. Offer 3 practical examples of questions they can ask (such as PM-KISAN, Ayushman Bharat, or education scholarships). Keep your answer concise, respectful, and well-structured.',
+        userMessage: question,
+        maxTokens: 512,
+        temperature: 0.5,
+      });
+
+      return {
+        answer: response.content,
+        citations: [],
+        followUpSuggestions: [
+          'What are the eligibility criteria for PM-KISAN?',
+          'How does Ayushman Bharat ₹5 Lakh health cover work?',
+          'Which scholarships are available for students?',
+        ],
+        conversationId: uuidv4(),
+        retrievedChunks: [],
+      };
+    } catch {
+      return {
+        answer:
+          'Namaste! Welcome to **YojnaSetu** — your public information assistant for central and state welfare schemes.\n\nI can help you with:\n• Finding welfare initiatives across agriculture, healthcare, education, and housing\n• Verifying eligibility rules from official government guidelines\n• Step-by-step application instructions and required documentation checklists\n\nHow may I assist you today?',
+        citations: [],
+        followUpSuggestions: [
+          'Check PM-KISAN eligibility',
+          'Explore Ayushman Bharat health cover',
+          'Search education scholarships',
+        ],
+        conversationId: uuidv4(),
+        retrievedChunks: [],
+      };
+    }
+  }
+
   if (retrievedChunks.length === 0) {
     return {
       answer:

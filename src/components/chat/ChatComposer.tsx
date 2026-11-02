@@ -89,7 +89,6 @@ export function ChatComposer({
       (window as unknown as { webkitSpeechRecognition?: SpeechRecognitionConstructor }).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      // If browser doesn't support Web Speech API, focus textarea
       textareaRef.current?.focus();
       return;
     }
@@ -129,13 +128,13 @@ export function ChatComposer({
   }, [language]);
 
   return (
-    <div className={isCentered ? "w-full" : "w-full bg-[#12141a]/85 backdrop-blur-md border-t border-neutral-800 p-4"}>
+    <div className={isCentered ? "w-full" : "w-full bg-white/90 backdrop-blur-md border-t border-slate-200 p-4"}>
       <form onSubmit={handleSubmit} className="mx-auto max-w-2xl">
-        <div className="relative flex items-center w-full rounded-full bg-[#212121] border border-neutral-700/80 shadow-2xl px-2.5 py-1.5 sm:px-3 sm:py-2 transition-all focus-within:border-neutral-500 focus-within:ring-2 focus-within:ring-neutral-700/50">
+        <div className="relative flex items-center w-full rounded-full bg-white border border-slate-300 shadow-md shadow-slate-200/50 px-2.5 py-1.5 sm:px-3 sm:py-2 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
           {/* Plus icon on left */}
           <button
             type="button"
-            className="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors shrink-0"
+            className="p-2 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
             aria-label="Quick options"
             onClick={() => textareaRef.current?.focus()}
           >
@@ -154,7 +153,7 @@ export function ChatComposer({
             placeholder={resolvedPlaceholder}
             maxLength={2000}
             disabled={isLoading}
-            className="flex-1 bg-transparent text-white placeholder:text-neutral-400 text-sm sm:text-base outline-none resize-none px-3 py-1.5 max-h-32 leading-relaxed"
+            className="flex-1 bg-transparent text-slate-900 placeholder:text-slate-400 text-sm sm:text-base outline-none resize-none px-3 py-1.5 max-h-32 leading-relaxed"
             aria-label="Question prompt"
           />
 
@@ -162,10 +161,10 @@ export function ChatComposer({
           <button
             type="button"
             onClick={handleMicClick}
-            className={`p-2 rounded-full transition-colors shrink-0 ${
+            className={`p-2 rounded-full transition-colors shrink-0 cursor-pointer ${
               isListening
-                ? "text-rose-400 bg-rose-500/20 animate-pulse"
-                : "text-neutral-400 hover:text-white hover:bg-neutral-800"
+                ? "text-rose-600 bg-rose-50 animate-pulse"
+                : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
             }`}
             aria-label="Voice input"
             title={isListening ? "Listening..." : "Click to speak"}
@@ -173,16 +172,16 @@ export function ChatComposer({
             <Mic className="w-5 h-5" />
           </button>
 
-          {/* Right Action Button: Blue circle with AudioLines (waveform) or ArrowUp when typing */}
+          {/* Right Action Button: Blue circle with AudioLines or ArrowUp */}
           <button
             type="submit"
             disabled={isLoading || (!message.trim() && !isCentered)}
-            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ml-1 transition-all active:scale-95 shadow-md ${
+            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ml-1 transition-all active:scale-95 shadow-sm cursor-pointer ${
               message.trim()
-                ? "bg-[#1d6ee5] hover:bg-[#1a5ec4] text-white"
+                ? "bg-blue-600 hover:bg-blue-700 text-white"
                 : isCentered
-                  ? "bg-[#1d6ee5] hover:bg-[#1a5ec4] text-white cursor-pointer"
-                  : "bg-neutral-700 text-neutral-400 cursor-not-allowed"
+                  ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                  : "bg-slate-100 text-slate-400 cursor-not-allowed"
             }`}
             aria-label={message.trim() ? "Send message" : "Voice/Start"}
           >
@@ -198,7 +197,7 @@ export function ChatComposer({
 
         {/* Small subtle disclaimer at bottom only in docked mode */}
         {!isCentered && (
-          <p className="mt-2 text-center text-[11px] text-neutral-500">
+          <p className="mt-2 text-center text-[11px] text-slate-500">
             {language === "HI"
               ? "सत्यापन के लिए आधिकारिक दिशा-निर्देशों से जांचें। गोपनीय जानकारी साझा न करें।"
               : "Verify critical scheme rules with official department portals. Do not share sensitive personal IDs."}

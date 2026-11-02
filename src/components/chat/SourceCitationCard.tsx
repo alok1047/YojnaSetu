@@ -6,20 +6,20 @@ interface SourceCitationCardProps {
 
 export function SourceCitationCard({ citation }: SourceCitationCardProps) {
   return (
-    <div className="flex flex-col gap-1.5 p-3.5 bg-[#181b26] border border-white/10 rounded-xl text-sm shadow-sm transition-colors hover:border-white/20">
+    <div className="flex flex-col gap-1.5 p-3.5 bg-white border border-slate-200 rounded-xl text-sm shadow-xs transition-colors hover:border-slate-300">
       <div className="flex items-start justify-between gap-2">
-        <h4 className="font-medium text-slate-100 leading-snug text-xs sm:text-sm">
+        <h4 className="font-medium text-slate-900 leading-snug text-xs sm:text-sm">
           {citation.title}
         </h4>
         {citation.pageNumber && (
-          <span className="shrink-0 text-[11px] text-slate-300 bg-white/10 px-2 py-0.5 rounded-full font-mono">
+          <span className="shrink-0 text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full font-mono border border-slate-200">
             Page {citation.pageNumber}
           </span>
         )}
       </div>
 
       {citation.excerpt && (
-        <blockquote className="text-xs text-slate-300 italic border-l-2 border-emerald-500/60 pl-2.5 mt-1 line-clamp-3">
+        <blockquote className="text-xs text-slate-600 italic border-l-2 border-emerald-500 pl-2.5 mt-1 line-clamp-3">
           &ldquo;{citation.excerpt}&rdquo;
         </blockquote>
       )}
@@ -29,7 +29,7 @@ export function SourceCitationCard({ citation }: SourceCitationCardProps) {
           href={citation.sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 hover:underline mt-1 w-fit font-medium"
+          className="inline-flex items-center gap-1 text-xs text-emerald-700 hover:text-emerald-800 hover:underline mt-1 w-fit font-medium"
         >
           Open official document
           <svg

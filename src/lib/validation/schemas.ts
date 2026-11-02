@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const chatRequestSchema = z.object({
-  question: z.string().min(3, 'Question must be at least 3 characters').max(2000, 'Question is too long'),
+  question: z.string().trim().min(1, 'Question must not be empty').max(2000, 'Question is too long'),
   filters: z.object({
     state: z.string().optional(),
     category: z.string().optional(),

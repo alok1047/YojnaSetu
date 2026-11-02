@@ -14,8 +14,8 @@ describe('chatRequestSchema', () => {
     expect(valid.success).toBe(true);
   });
 
-  it('rejects questions shorter than 3 characters', () => {
-    const invalid = chatRequestSchema.safeParse({ question: 'hi' });
+  it('rejects empty questions', () => {
+    const invalid = chatRequestSchema.safeParse({ question: '   ' });
     expect(invalid.success).toBe(false);
   });
 
