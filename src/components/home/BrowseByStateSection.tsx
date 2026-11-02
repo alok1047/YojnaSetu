@@ -483,10 +483,15 @@ export function BrowseByStateSection() {
                         onMouseLeave={() => setHoveredStateId(null)}
                       >
                         <title>
-                          {loc.name}
-                          {isSelected
-                            ? (language === "HI" ? " — चयन हटाने व रीसेट के लिए पुनः क्लिक करें" : " — Click again to deselect & reset")
-                            : (language === "HI" ? " — चयन और ज़ूम के लिए क्लिक करें" : " — Click to select & zoom")}
+                          {`${loc.name}${
+                            isSelected
+                              ? language === "HI"
+                                ? " — चयन हटाने व रीसेट के लिए पुनः क्लिक करें"
+                                : " — Click again to deselect & reset"
+                              : language === "HI"
+                                ? " — चयन और ज़ूम के लिए क्लिक करें"
+                                : " — Click to select & zoom"
+                          }`}
                         </title>
                       </path>
                     );
