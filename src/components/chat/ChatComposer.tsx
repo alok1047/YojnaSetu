@@ -1,30 +1,60 @@
 "use client";
 
 import { useState, useRef, useCallback, type FormEvent, type KeyboardEvent } from "react";
+import { Plus, Mic, AudioLines, ArrowUp, Loader2 } from "lucide-react";
+import { useLanguage } from "@/lib/context/LanguageContext";
+
+interface SpeechRecognitionInstance {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+}
+
+interface SpeechRecognitionEvent {
+  results?: Array<Array<{ transcript?: string }>>;
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognitionInstance;
+}
 
 interface ChatComposerProps {
   onSubmit: (message: string) => void;
   isLoading: boolean;
   placeholder?: string;
+  isCentered?: boolean;
 }
 
 export function ChatComposer({
   onSubmit,
   isLoading,
-  placeholder = "Ask about welfare schemes, eligibility, or application steps…",
+  placeholder,
+  isCentered = false,
 }: ChatComposerProps) {
   const [message, setMessage] = useState("");
+  const [isListening, setIsListening] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { language } = useLanguage();
+
+  const defaultPlaceholder =
+    language === "HI"
+      ? "योजना सहायक से पूछें..."
+      : "Ask Scheme Assistant";
+
+  const resolvedPlaceholder = placeholder || defaultPlaceholder;
 
   const handleSubmit = useCallback(
-    (e: FormEvent) => {
-      e.preventDefault();
+    (e?: FormEvent) => {
+      e?.preventDefault();
       const trimmed = message.trim();
       if (!trimmed || isLoading) return;
       if (trimmed.length > 2000) return;
       onSubmit(trimmed);
       setMessage("");
-      // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
       }
@@ -36,7 +66,7 @@ export function ChatComposer({
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        handleSubmit(e as unknown as FormEvent);
+        handleSubmit();
       }
     },
     [handleSubmit]
@@ -46,83 +76,134 @@ export function ChatComposer({
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "auto";
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 140)}px`;
     }
   }, []);
 
+  const handleMicClick = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    // Browser SpeechRecognition fallback
+    const SpeechRecognition =
+      (window as unknown as { SpeechRecognition?: SpeechRecognitionConstructor }).SpeechRecognition ||
+      (window as unknown as { webkitSpeechRecognition?: SpeechRecognitionConstructor }).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      // If browser doesn't support Web Speech API, focus textarea
+      textareaRef.current?.focus();
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = language === "HI" ? "hi-IN" : "en-IN";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      setIsListening(true);
+
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        const transcript = event.results?.[0]?.[0]?.transcript;
+        if (transcript) {
+          setMessage((prev) => (prev ? `${prev} ${transcript}` : transcript));
+          if (textareaRef.current) {
+            textareaRef.current.focus();
+          }
+        }
+        setIsListening(false);
+      };
+
+      recognition.onerror = () => {
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.start();
+    } catch {
+      setIsListening(false);
+      textareaRef.current?.focus();
+    }
+  }, [language]);
+
   return (
-    <div className="border-t border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-      <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
-        <div className="flex items-end gap-3">
-          <div className="flex-1 relative">
-            <label htmlFor="chat-input" className="sr-only">
-              Type your question
-            </label>
-            <textarea
-              ref={textareaRef}
-              id="chat-input"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onInput={handleInput}
-              placeholder={placeholder}
-              rows={1}
-              maxLength={2000}
-              disabled={isLoading}
-              className="w-full resize-none px-4 py-3 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-[var(--radius-control)] text-sm text-[var(--color-text)] placeholder:text-[var(--color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent disabled:opacity-50 transition-shadow"
-              aria-describedby="chat-privacy-note"
-            />
-          </div>
+    <div className={isCentered ? "w-full" : "w-full bg-[#12141a]/85 backdrop-blur-md border-t border-neutral-800 p-4"}>
+      <form onSubmit={handleSubmit} className="mx-auto max-w-2xl">
+        <div className="relative flex items-center w-full rounded-full bg-[#212121] border border-neutral-700/80 shadow-2xl px-2.5 py-1.5 sm:px-3 sm:py-2 transition-all focus-within:border-neutral-500 focus-within:ring-2 focus-within:ring-neutral-700/50">
+          {/* Plus icon on left */}
+          <button
+            type="button"
+            className="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors shrink-0"
+            aria-label="Quick options"
+            onClick={() => textareaRef.current?.focus()}
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+
+          {/* Textarea input */}
+          <textarea
+            ref={textareaRef}
+            id="chat-input"
+            rows={1}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onInput={handleInput}
+            placeholder={resolvedPlaceholder}
+            maxLength={2000}
+            disabled={isLoading}
+            className="flex-1 bg-transparent text-white placeholder:text-neutral-400 text-sm sm:text-base outline-none resize-none px-3 py-1.5 max-h-32 leading-relaxed"
+            aria-label="Question prompt"
+          />
+
+          {/* Mic icon */}
+          <button
+            type="button"
+            onClick={handleMicClick}
+            className={`p-2 rounded-full transition-colors shrink-0 ${
+              isListening
+                ? "text-rose-400 bg-rose-500/20 animate-pulse"
+                : "text-neutral-400 hover:text-white hover:bg-neutral-800"
+            }`}
+            aria-label="Voice input"
+            title={isListening ? "Listening..." : "Click to speak"}
+          >
+            <Mic className="w-5 h-5" />
+          </button>
+
+          {/* Right Action Button: Blue circle with AudioLines (waveform) or ArrowUp when typing */}
           <button
             type="submit"
-            disabled={!message.trim() || isLoading}
-            className="shrink-0 w-10 h-10 flex items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            aria-label="Send message"
+            disabled={isLoading || (!message.trim() && !isCentered)}
+            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ml-1 transition-all active:scale-95 shadow-md ${
+              message.trim()
+                ? "bg-[#1d6ee5] hover:bg-[#1a5ec4] text-white"
+                : isCentered
+                  ? "bg-[#1d6ee5] hover:bg-[#1a5ec4] text-white cursor-pointer"
+                  : "bg-neutral-700 text-neutral-400 cursor-not-allowed"
+            }`}
+            aria-label={message.trim() ? "Send message" : "Voice/Start"}
           >
             {isLoading ? (
-              <svg
-                className="animate-spin h-5 w-5"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
+              <Loader2 className="w-5 h-5 animate-spin text-white" />
+            ) : message.trim() ? (
+              <ArrowUp className="w-5 h-5 stroke-[2.5]" />
             ) : (
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="m22 2-7 20-4-9-9-4Z" />
-                <path d="M22 2 11 13" />
-              </svg>
+              <AudioLines className="w-5 h-5 text-white" />
             )}
           </button>
         </div>
-        <p id="chat-privacy-note" className="mt-2 text-xs text-[var(--color-muted)]">
-          Do not share Aadhaar numbers, bank details, or other sensitive personal
-          information. Press Enter to send, Shift+Enter for a new line.
-        </p>
+
+        {/* Small subtle disclaimer at bottom only in docked mode */}
+        {!isCentered && (
+          <p className="mt-2 text-center text-[11px] text-neutral-500">
+            {language === "HI"
+              ? "सत्यापन के लिए आधिकारिक दिशा-निर्देशों से जांचें। गोपनीय जानकारी साझा न करें।"
+              : "Verify critical scheme rules with official department portals. Do not share sensitive personal IDs."}
+          </p>
+        )}
       </form>
     </div>
   );

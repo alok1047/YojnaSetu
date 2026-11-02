@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/context/LanguageContext";
 
 export function AppFooter() {
   const { language } = useLanguage();
+  const pathname = usePathname();
+
+  // Hide footer on Ask Assistant page for a full-screen, dedicated chat interface
+  if (pathname?.startsWith("/ask")) {
+    return null;
+  }
 
   return (
     <footer className="bg-[var(--color-surface)] border-t border-[var(--color-border)] mt-auto">

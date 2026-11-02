@@ -3,9 +3,10 @@ import { SourceCitationCard } from "./SourceCitationCard";
 
 interface ChatMessageProps {
   message: ChatMessageType;
+  onSelectSuggestion?: (suggestion: string) => void;
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, onSelectSuggestion }: ChatMessageProps) {
   const isUser = message.role === "user";
 
   return (
@@ -14,10 +15,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
       role="article"
       aria-label={`${isUser ? "Your" : "Assistant"} message`}
     >
-      {/* Avatar */}
+      {/* Assistant avatar */}
       {!isUser && (
         <div
-          className="shrink-0 w-8 h-8 rounded-full bg-[var(--color-accent-soft)] flex items-center justify-center"
+          className="shrink-0 w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400"
           aria-hidden="true"
         >
           <svg
@@ -25,7 +26,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             height="16"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="var(--color-primary)"
+            stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -40,46 +41,50 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </div>
       )}
 
-      <div className={`max-w-[85%] sm:max-w-[75%] ${isUser ? "order-first" : ""}`}>
+      <div className={`max-w-[88%] sm:max-w-[78%] ${isUser ? "order-first" : ""}`}>
         {/* Message label */}
-        <p className={`text-xs font-medium mb-1 ${isUser ? "text-right" : "text-left"} text-[var(--color-muted)]`}>
-          {isUser ? "You" : "Assistant"}
+        <p
+          className={`text-[11px] font-medium mb-1 ${
+            isUser ? "text-right text-slate-400" : "text-left text-slate-400"
+          }`}
+        >
+          {isUser ? "You" : "Scheme Assistant"}
         </p>
 
         {/* Message bubble */}
         <div
           className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
             isUser
-              ? "bg-[var(--color-primary)] text-white rounded-br-md"
-              : "bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] rounded-bl-md"
+              ? "bg-[#1d6ee5] text-white rounded-br-md shadow-md"
+              : "bg-[#181b26] border border-white/10 text-slate-100 rounded-bl-md shadow-sm"
           }`}
         >
           {message.isLoading ? (
-            <div className="flex items-center gap-2">
-              <span className="text-[var(--color-muted)]">
-                Searching available documents…
+            <div className="flex items-center gap-2.5 py-1">
+              <span className="text-slate-300 text-xs">
+                Searching verified government documents…
               </span>
               <div className="flex gap-1" aria-hidden="true">
-                <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce [animation-delay:0ms]" />
-                <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce [animation-delay:300ms]" />
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:300ms]" />
               </div>
             </div>
           ) : message.error ? (
-            <div className="text-[var(--color-danger)]" role="alert">
-              <p className="font-medium">Something went wrong</p>
-              <p className="text-xs mt-1 opacity-80">{message.error}</p>
+            <div className="text-rose-400" role="alert">
+              <p className="font-semibold text-xs sm:text-sm">Unable to complete request</p>
+              <p className="text-xs mt-1 opacity-90">{message.error}</p>
             </div>
           ) : (
-            <div className="whitespace-pre-wrap">{message.content}</div>
+            <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
           )}
         </div>
 
         {/* Citations */}
         {!isUser && message.citations && message.citations.length > 0 && (
           <div className="mt-3" aria-label="Sources">
-            <p className="text-xs font-medium text-[var(--color-muted)] mb-2">
-              Sources
+            <p className="text-xs font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
+              <span>Verified Sources ({message.citations.length})</span>
             </p>
             <div className="space-y-2">
               {message.citations.map((citation, idx) => (
@@ -95,8 +100,9 @@ export function ChatMessage({ message }: ChatMessageProps) {
             {message.followUpSuggestions.map((suggestion, idx) => (
               <button
                 key={idx}
-                className="text-xs px-3 py-1.5 bg-[var(--color-accent-soft)] text-[var(--color-primary)] rounded-full hover:bg-[var(--color-primary)] hover:text-white transition-colors"
                 type="button"
+                onClick={() => onSelectSuggestion?.(suggestion)}
+                className="text-xs px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-full border border-white/10 transition-colors"
               >
                 {suggestion}
               </button>
@@ -108,7 +114,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       {/* User avatar */}
       {isUser && (
         <div
-          className="shrink-0 w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center"
+          className="shrink-0 w-8 h-8 rounded-full bg-[#1d6ee5] flex items-center justify-center text-white shadow-sm"
           aria-hidden="true"
         >
           <svg
@@ -116,7 +122,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             height="16"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="white"
+            stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
