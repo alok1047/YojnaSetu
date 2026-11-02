@@ -15,6 +15,9 @@ import {
   ArrowUpRight,
   Loader2,
   KeyRound,
+  FileUp,
+  Sparkles,
+  Upload,
 } from 'lucide-react';
 import { SCHEME_CATEGORIES, INDIAN_STATES } from '@/lib/data/sample-schemes';
 import type { SchemeCategory } from '@/lib/types';
@@ -79,6 +82,16 @@ export function AdminPageClient() {
   const [docJurisdiction, setDocJurisdiction] = useState('Central');
   const [docUrl, setDocUrl] = useState('');
   const [docContent, setDocContent] = useState('');
+
+  // AI PDF Parse & Auto-fill State
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+  const [pdfUploadError, setPdfUploadError] = useState<string | null>(null);
+  const [uploadedPdfName, setUploadedPdfName] = useState<string | null>(null);
+  const [uploadedPages, setUploadedPages] = useState<number | null>(null);
+
+  // Tab 2: Raw Document PDF Extraction
+  const [isUploadingDocPdf, setIsUploadingDocPdf] = useState(false);
+  const [docPdfError, setDocPdfError] = useState<string | null>(null);
 
   const fetchStatusAndSchemes = useCallback(async (key: string) => {
     setIsLoadingStatus(true);
@@ -156,6 +169,138 @@ export function AdminPageClient() {
     setAdminKey('');
     setIsAuthenticated(false);
     setStatus(null);
+  };
+
+  // Upload and parse official scheme PDF via AI
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+      setPdfUploadError('Please select a valid PDF file.');
+      return;
+    }
+
+    setIsUploadingPdf(true);
+    setPdfUploadError(null);
+    setUploadedPdfName(file.name);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/admin/parse-pdf', {
+        method: 'POST',
+        headers: {
+          'x-admin-key': adminKey,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to parse scheme document');
+      }
+
+      const { extracted, totalPages } = data;
+      setUploadedPages(totalPages || null);
+
+      if (extracted) {
+        if (extracted.name) setSchemeName(extracted.name);
+        if (extracted.category && Object.keys(SCHEME_CATEGORIES).includes(extracted.category)) {
+          setCategory(extracted.category as SchemeCategory);
+        }
+        if (extracted.department) setDepartment(extracted.department);
+        if (extracted.jurisdiction) {
+          if (
+            extracted.jurisdiction.toLowerCase().includes('central') ||
+            extracted.jurisdiction.toLowerCase().includes('all india')
+          ) {
+            setJurisdiction('Central');
+          } else {
+            const matchedState = INDIAN_STATES.find((s) =>
+              extracted.jurisdiction.toLowerCase().includes(s.toLowerCase())
+            );
+            setJurisdiction(matchedState || extracted.jurisdiction);
+          }
+        }
+        if (extracted.targetGroup) setTargetGroup(extracted.targetGroup);
+        if (extracted.summary) setSummary(extracted.summary);
+        if (extracted.description) setDescription(extracted.description);
+        if (Array.isArray(extracted.benefits)) setBenefitsText(extracted.benefits.join('\n'));
+        if (Array.isArray(extracted.requiredDocuments)) setDocumentsText(extracted.requiredDocuments.join('\n'));
+        if (Array.isArray(extracted.applicationSteps)) setStepsText(extracted.applicationSteps.join('\n'));
+        if (extracted.officialUrl) setOfficialUrl(extracted.officialUrl);
+        if (extracted.sourceTitle) setSourceTitle(extracted.sourceTitle);
+
+        setFeedbackNotice({
+          type: 'success',
+          message: `AI successfully analyzed "${file.name}"! Form fields have been auto-populated. Please check and adjust all details below before publishing.`,
+        });
+      }
+    } catch (err) {
+      setPdfUploadError(err instanceof Error ? err.message : 'Failed to parse PDF document');
+    } finally {
+      setIsUploadingPdf(false);
+      e.target.value = '';
+    }
+  };
+
+  // Upload and extract text for Tab 2 (Raw Gazette Ingestion)
+  const handleDocPdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+      setDocPdfError('Please select a valid PDF file.');
+      return;
+    }
+
+    setIsUploadingDocPdf(true);
+    setDocPdfError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/admin/parse-pdf', {
+        method: 'POST',
+        headers: {
+          'x-admin-key': adminKey,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to parse gazette document');
+      }
+
+      if (data.rawText) {
+        setDocContent(data.rawText);
+      }
+      if (data.extracted?.name) {
+        setDocTitle(data.extracted.name);
+      } else if (file.name) {
+        setDocTitle(file.name.replace(/\.pdf$/i, ''));
+      }
+      if (data.extracted?.department) {
+        setDocDept(data.extracted.department);
+      }
+      if (data.extracted?.jurisdiction) {
+        setDocJurisdiction(data.extracted.jurisdiction);
+      }
+
+      setFeedbackNotice({
+        type: 'success',
+        message: `Extracted text from "${file.name}" into document content!`,
+      });
+    } catch (err) {
+      setDocPdfError(err instanceof Error ? err.message : 'Failed to parse document PDF');
+    } finally {
+      setIsUploadingDocPdf(false);
+      e.target.value = '';
+    }
   };
 
   // Submit New Scheme
@@ -535,6 +680,102 @@ export function AdminPageClient() {
               </p>
             </div>
 
+            {/* AI PDF Uploader Box */}
+            <div className="bg-gradient-to-br from-emerald-50/80 via-teal-50/40 to-slate-50 border-2 border-dashed border-emerald-300 rounded-2xl p-5 sm:p-6 transition-all hover:border-emerald-500">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-sm">
+                    {isUploadingPdf ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <FileUp className="w-6 h-6" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-slate-900">Upload Scheme Official PDF</h3>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">
+                        <Sparkles className="w-3 h-3 text-emerald-700" />
+                        AI Auto-Fill
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 max-w-xl">
+                      Upload any official government gazette, scheme circular, or guidelines PDF. Our AI automatically parses all metadata and populates every field below so you can verify before indexing.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="shrink-0 w-full sm:w-auto">
+                  <label
+                    htmlFor="scheme-pdf-upload"
+                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-xs text-white shadow-sm transition-all cursor-pointer ${
+                      isUploadingPdf
+                        ? 'bg-emerald-400 cursor-not-allowed'
+                        : 'bg-emerald-700 hover:bg-emerald-800 active:scale-98'
+                    }`}
+                  >
+                    {isUploadingPdf ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Analyzing Document...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        <span>Choose Scheme PDF</span>
+                      </>
+                    )}
+                    <input
+                      id="scheme-pdf-upload"
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      disabled={isUploadingPdf}
+                      onChange={handlePdfUpload}
+                      className="sr-only"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Status info if a PDF has been parsed */}
+              {uploadedPdfName && !isUploadingPdf && !pdfUploadError && (
+                <div className="mt-4 pt-3.5 border-t border-emerald-200/60 flex flex-wrap items-center justify-between gap-2 text-xs text-emerald-900">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>
+                      Parsed from <strong className="font-semibold">{uploadedPdfName}</strong>
+                      {uploadedPages ? ` (${uploadedPages} pages)` : ''}. Review and adjust any details below before publishing.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadedPdfName(null);
+                      setUploadedPages(null);
+                    }}
+                    className="text-[11px] text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
+
+              {pdfUploadError && (
+                <div className="mt-4 pt-3.5 border-t border-rose-200 flex items-center gap-2 text-xs text-rose-700">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{pdfUploadError}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <div className="h-px bg-slate-200 flex-1" />
+              <span className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">
+                Scheme Form Details
+              </span>
+              <div className="h-px bg-slate-200 flex-1" />
+            </div>
+
             <form onSubmit={handleAddScheme} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -739,9 +980,51 @@ export function AdminPageClient() {
             <div>
               <h2 className="text-lg font-bold text-slate-900">Ingest Raw Gazette Circular or Press Notification</h2>
               <p className="text-xs text-slate-500 mt-1">
-                Paste official notification text directly. The AI pipeline will automatically extract paragraphs, generate semantic vector embeddings, and store citations so citizens can immediately query it in the Ask Assistant.
+                Paste official notification text directly, or upload a PDF document. The AI pipeline will automatically extract paragraphs, generate semantic vector embeddings, and store citations so citizens can immediately query it in the Ask Assistant.
               </p>
             </div>
+
+            {/* Quick PDF Text Extraction Option */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5">
+                <FileUp className="w-4 h-4 text-emerald-700 shrink-0" />
+                <span className="text-slate-700">
+                  Have a circular PDF? You can extract its text into the form directly.
+                </span>
+              </div>
+              <label
+                htmlFor="gazette-pdf-upload"
+                className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium cursor-pointer shadow-2xs transition-colors shrink-0 ${
+                  isUploadingDocPdf ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {isUploadingDocPdf ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Extracting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Extract from PDF</span>
+                  </>
+                )}
+                <input
+                  id="gazette-pdf-upload"
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  disabled={isUploadingDocPdf}
+                  onChange={handleDocPdfUpload}
+                  className="sr-only"
+                />
+              </label>
+            </div>
+            {docPdfError && (
+              <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{docPdfError}</span>
+              </div>
+            )}
 
             <form onSubmit={handleIngestDocument} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
