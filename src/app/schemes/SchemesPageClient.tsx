@@ -1,14 +1,23 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { PageContainer, PageHeading, EmptyState, DisclaimerNotice } from '@/components/ui';
 import { SchemeCard, SchemeFilters } from '@/components/schemes';
 import { SAMPLE_SCHEMES, INDIAN_STATES, SCHEME_CATEGORIES } from '@/lib/data/sample-schemes';
+import { useLanguage } from '@/lib/context/LanguageContext';
 
 export function SchemesPageClient() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedState, setSelectedState] = useState('');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { language } = useLanguage();
+
+  // Read filters directly from URL search parameters as single source of truth
+  const selectedCategory = searchParams.get('category') || '';
+  const selectedState = searchParams.get('state') || '';
+  const urlQuery = searchParams.get('query') || searchParams.get('q') || '';
+  const [searchQuery, setSearchQuery] = useState(urlQuery);
 
   const categories = useMemo(() => {
     return Object.entries(SCHEME_CATEGORIES).map(([value, label]) => ({
@@ -55,10 +64,37 @@ export function SchemesPageClient() {
     });
   }, [searchQuery, selectedCategory, selectedState]);
 
+  // Update URL helper when filters change
+  const updateUrlParams = useCallback(
+    (newCategory: string, newState: string, newQuery: string) => {
+      const params = new URLSearchParams();
+      if (newCategory) params.set('category', newCategory);
+      if (newState) params.set('state', newState);
+      if (newQuery.trim()) params.set('query', newQuery.trim());
+
+      const queryString = params.toString();
+      const targetUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      router.replace(targetUrl, { scroll: false });
+    },
+    [pathname, router]
+  );
+
+  const handleCategoryChange = (cat: string) => {
+    updateUrlParams(cat, selectedState, searchQuery);
+  };
+
+  const handleStateChange = (st: string) => {
+    updateUrlParams(selectedCategory, st, searchQuery);
+  };
+
+  const handleSearchChange = (q: string) => {
+    setSearchQuery(q);
+    updateUrlParams(selectedCategory, selectedState, q);
+  };
+
   const handleClearFilters = () => {
     setSearchQuery('');
-    setSelectedCategory('');
-    setSelectedState('');
+    router.replace(pathname, { scroll: false });
   };
 
   return (
@@ -66,12 +102,20 @@ export function SchemesPageClient() {
       <div className="space-y-6">
         <DisclaimerNotice
           variant="info"
-          message="This directory uses sample data for demonstration. In production, schemes are sourced from official documents."
+          message={
+            language === 'HI'
+              ? 'यह निर्देशिका आधिकारिक सरकारी दस्तावेज़ों, पात्रता नियमों और आवेदन लिंक के साथ कल्याणकारी योजनाओं को सूचीबद्ध करती है।'
+              : 'This directory indexes verified central and state welfare initiatives with official gazette citations, eligibility criteria, and application links.'
+          }
         />
 
         <PageHeading
-          title="Explore Schemes"
-          description="Browse and filter government welfare schemes by category, jurisdiction, and keywords with verified source citations."
+          title={language === 'HI' ? 'योजनाएं खोजें' : 'Explore Schemes'}
+          description={
+            language === 'HI'
+              ? 'श्रेणी, राज्य और कीवर्ड के अनुसार सरकारी कल्याणकारी योजनाओं को फ़िल्टर करें।'
+              : 'Browse and filter government welfare schemes by category, jurisdiction, and keywords with verified source citations.'
+          }
         />
 
         <SchemeFilters
@@ -80,9 +124,9 @@ export function SchemesPageClient() {
           selectedCategory={selectedCategory}
           selectedState={selectedState}
           searchQuery={searchQuery}
-          onCategoryChange={setSelectedCategory}
-          onStateChange={setSelectedState}
-          onSearchChange={setSearchQuery}
+          onCategoryChange={handleCategoryChange}
+          onStateChange={handleStateChange}
+          onSearchChange={handleSearchChange}
           onClearFilters={handleClearFilters}
           resultCount={filteredSchemes.length}
         />
@@ -98,10 +142,14 @@ export function SchemesPageClient() {
         ) : (
           <div className="pt-4">
             <EmptyState
-              title="No schemes found"
-              description="We couldn't find any schemes matching your criteria. Try adjusting your search query or clearing some filters."
+              title={language === 'HI' ? 'कोई योजना नहीं मिली' : 'No schemes found'}
+              description={
+                language === 'HI'
+                  ? 'आपके चयनित फ़िल्टर से कोई योजना मेल नहीं खाती। कृपया फ़िल्टर बदलें या सभी फ़िल्टर साफ़ करें।'
+                  : "We couldn't find any schemes matching your criteria. Try adjusting your search query or clearing some filters."
+              }
               action={{
-                label: 'Clear all filters',
+                label: language === 'HI' ? 'सभी फ़िल्टर साफ़ करें' : 'Clear all filters',
                 onClick: handleClearFilters,
               }}
             />
