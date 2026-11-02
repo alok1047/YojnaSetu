@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SAMPLE_SCHEMES } from '@/lib/data/sample-schemes';
+import { getAllSchemes } from '@/lib/data/custom-schemes';
 
 export async function GET(
   _request: NextRequest,
@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const scheme = SAMPLE_SCHEMES.find((s) => s.slug === slug);
+    const scheme = getAllSchemes().find((s) => s.slug === slug);
 
     if (!scheme) {
       return NextResponse.json(

@@ -8,8 +8,8 @@ export function AppFooter() {
   const { language } = useLanguage();
   const pathname = usePathname();
 
-  // Hide footer on Ask Assistant page for a full-screen, dedicated chat interface
-  if (pathname?.startsWith("/ask")) {
+  // Hide footer on Ask Assistant and Admin pages for a dedicated full-height experience
+  if (pathname?.startsWith("/ask") || pathname?.startsWith("/admin")) {
     return null;
   }
 

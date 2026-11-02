@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { schemeSearchSchema } from '@/lib/validation/schemas';
-import { SAMPLE_SCHEMES } from '@/lib/data/sample-schemes';
+import { getAllSchemes } from '@/lib/data/custom-schemes';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { query, category, state, page, limit } = parsed.data;
-    let schemes = [...SAMPLE_SCHEMES];
+    let schemes = getAllSchemes();
 
     // Filter
     if (query) {
