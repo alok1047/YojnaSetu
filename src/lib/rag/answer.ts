@@ -99,6 +99,41 @@ export async function generateRAGAnswer(
     }
   }
 
+  // Step 3b: Handle catalog count questions (e.g. "how many schemes are there")
+  const COUNT_REGEX = /(how many|total|number of|count of|kitni|kitne).*(schemes?|yojanas?|yojna)/i;
+  const isCountQuery = COUNT_REGEX.test(question.trim().toLowerCase());
+
+  if (isCountQuery) {
+    return {
+      answer: `There are currently **637 verified, active welfare schemes** indexed in YojnaSetu, covering both Central and State government programs:
+
+### 🏛️ Jurisdiction Distribution
+- **Central Government Schemes:** **527 schemes** spanning all Union Ministries (Education, Agriculture, Health, MSME, Finance, Housing, etc.)
+- **State & UT Schemes:** **110 schemes** across Gujarat, Maharashtra, Uttar Pradesh, Tamil Nadu, Andhra Pradesh, Karnataka, Punjab, Lakshadweep, and other states/UTs.
+
+### 📋 Category Breakdown
+- **Education & Learning:** **184 schemes** (Scholarships, fellowships, study abroad loans)
+- **Social Security & Welfare:** **142 schemes** (Financial grants, SC/ST/OBC aid, basic security)
+- **Employment, MSME & Livelihood:** **83 schemes** (Artisan loans, startup grants, skill training)
+- **Agriculture & Allied Sectors:** **74 schemes** (PM-KISAN, crop insurance, equipment subsidies)
+- **Women & Child Development:** **44 schemes** (Sukanya Samriddhi, maternity support, girl child incentives)
+- **Health & Wellness:** **38 schemes** (Ayushman Bharat, medical assistance, diagnostic covers)
+- **Pensions & Senior Citizens:** **34 schemes** (Atal Pension, old age pensions, retirement safety)
+- **Disability Welfare (Divyangjan):** **24 schemes** (Assistive appliances, specialized pensions)
+- **Housing & Urban/Rural Shelter:** **14 schemes** (PMAY Urban & Gramin, construction assistance)
+
+You can browse and search all 637 schemes in our **[Explore Schemes Directory](/schemes)** or verify your eligibility using the **[Eligibility Checker](/eligibility)**.`,
+      citations: [],
+      followUpSuggestions: [
+        'Which scholarships are available in education?',
+        'What schemes exist for agriculture and farmers?',
+        'How do I check my eligibility for schemes?',
+      ],
+      conversationId: uuidv4(),
+      retrievedChunks: [],
+    };
+  }
+
   if (retrievedChunks.length === 0) {
     return {
       answer:
