@@ -261,7 +261,7 @@ export function AskPageClient() {
 
   return (
     <div
-      style={{ height: 'calc(100dvh - 4.5rem)', minHeight: 'calc(100dvh - 4.5rem)' }}
+      style={{ height: 'calc(100vh - 73px)', minHeight: 'calc(100vh - 73px)' }}
       className="flex flex-1 w-full overflow-hidden bg-slate-50 text-slate-900"
     >
       {/* ================= LEFT SIDE PANEL: NEW CHAT & HISTORY ================= */}
@@ -296,8 +296,8 @@ export function AskPageClient() {
 
         {/* Main chat viewport */}
         {messages.length === 0 ? (
-          /* ================= EMPTY STATE (Centered) ================= */
-          <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 sm:px-6 overflow-y-auto">
+          /* ================= EMPTY STATE (Centered, lowered down as requested) ================= */
+          <div className="flex-1 h-full flex flex-col items-center justify-center pt-16 sm:pt-24 pb-12 px-4 sm:px-6 overflow-y-auto">
             <div className="w-full max-w-2xl text-center space-y-6">
               {/* Centered headline */}
               <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">

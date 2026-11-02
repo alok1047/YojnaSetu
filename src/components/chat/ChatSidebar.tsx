@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, MessageSquare, Trash2, PanelLeftClose, Sparkles, BookOpen } from 'lucide-react';
+import { SquarePen, MessageSquare, Trash2, PanelLeftClose, Sparkles, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/context/LanguageContext';
 
@@ -35,39 +35,36 @@ export function ChatSidebar({
 
   return (
     <aside
-      className="w-64 sm:w-72 h-full bg-[#F9F9F8] border-r border-slate-200/90 flex flex-col shrink-0 select-none z-30 transition-all duration-200"
+      style={{ height: 'calc(100vh - 73px)', minHeight: 'calc(100vh - 73px)' }}
+      className="w-64 sm:w-72 h-full bg-[#F9F9F8] border-r border-slate-200/90 flex flex-col justify-between shrink-0 select-none z-30 transition-all duration-200"
       aria-label="Chat history sidebar"
     >
-      {/* Top action bar: New Chat + Collapse button */}
-      <div className="p-3 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onNewChat}
-          className="flex-1 flex items-center justify-between gap-2 px-3 py-2 text-xs font-medium text-slate-800 hover:bg-slate-200/60 rounded-xl transition-all cursor-pointer group"
-        >
-          <div className="flex items-center gap-2">
-            <Plus className="w-4 h-4 text-slate-600 group-hover:text-slate-900 transition-colors" />
-            <span>{language === 'HI' ? 'नई चैट' : 'New chat'}</span>
-          </div>
-          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-200/50 rounded">
-            Alt+N
-          </kbd>
-        </button>
-
+      {/* Top action bar: Toggle sidebar + New Chat icon buttons (clean, ChatGPT-style) */}
+      <div className="p-3 flex items-center justify-between">
         <button
           type="button"
           onClick={onToggle}
-          className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+          className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 rounded-lg transition-colors cursor-pointer"
           aria-label={language === 'HI' ? 'साइडबार बंद करें' : 'Close sidebar'}
           title={language === 'HI' ? 'साइडबार बंद करें' : 'Close sidebar'}
         >
           <PanelLeftClose className="w-4 h-4" />
         </button>
+
+        <button
+          type="button"
+          onClick={onNewChat}
+          className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 rounded-lg transition-colors cursor-pointer"
+          aria-label={language === 'HI' ? 'नई चैट' : 'New chat'}
+          title={language === 'HI' ? 'नई चैट (Alt+N)' : 'New chat (Alt+N)'}
+        >
+          <SquarePen className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Recent Chats list */}
       <div className="flex-1 overflow-y-auto p-2.5 space-y-1">
-        <div className="px-2.5 pt-2 pb-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+        <div className="px-2.5 pt-1 pb-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
           {language === 'HI' ? 'हाल की बातचीत' : 'Recent Chats'}
         </div>
 
@@ -125,8 +122,8 @@ export function ChatSidebar({
         )}
       </div>
 
-      {/* Footer stats & link */}
-      <div className="p-3 border-t border-slate-200/70 bg-white/40 space-y-2">
+      {/* Footer stats & link pinned to bottom */}
+      <div className="p-3 border-t border-slate-200/70 bg-white/40 space-y-2 mt-auto">
         <div className="flex items-center justify-between text-[11px] text-slate-600 font-medium px-1">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
