@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllSchemes, getCustomSchemes, saveCustomSchemes, deleteCustomScheme } from '@/lib/data/custom-schemes';
 import { ingestSchemes } from '@/lib/ingestion/ingest';
+import { getVectorStore } from '@/lib/vectorstore';
 import type { Scheme, SchemeCategory } from '@/lib/types';
 
 function checkAuth(request: NextRequest): boolean {
@@ -22,7 +23,11 @@ export async function GET(request: NextRequest) {
     isCustom: customIds.has(s.id),
   }));
 
-  return NextResponse.json({ schemes: schemesWithCustomFlag });
+  return NextResponse.json({
+    schemes: schemesWithCustomFlag,
+    totalCount: all.length,
+    customCount: customIds.size,
+  });
 }
 
 interface SchemeInput {
@@ -46,12 +51,17 @@ interface SchemeInput {
 }
 
 function normalizeSchemeInput(body: SchemeInput): Scheme {
-  const slug =
+  let slug =
     body.slug?.trim() ||
     body.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
+
+  // Handle non-Latin or Devanagari Hindi names where regex produces empty string
+  if (!slug || slug.length < 2) {
+    slug = `scheme-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  }
 
   const id = body.id || `scheme-${slug}-${Date.now().toString(36)}`;
 
@@ -67,19 +77,28 @@ function normalizeSchemeInput(body: SchemeInput): Scheme {
     targetGroup: body.targetGroup?.trim() || 'Citizens of India',
     status: 'active',
     isSampleData: false,
-    benefits: Array.isArray(body.benefits) ? body.benefits : (body.benefits || '').split('\n').filter(Boolean),
-    requiredDocuments: Array.isArray(body.requiredDocuments) ? body.requiredDocuments : (body.requiredDocuments || '').split('\n').filter(Boolean),
-    applicationSteps: Array.isArray(body.applicationSteps) ? body.applicationSteps : (body.applicationSteps || '').split('\n').filter(Boolean),
+    benefits: Array.isArray(body.benefits)
+      ? body.benefits
+      : (body.benefits || '').split('\n').map((s) => s.trim()).filter(Boolean),
+    requiredDocuments: Array.isArray(body.requiredDocuments)
+      ? body.requiredDocuments
+      : (body.requiredDocuments || '').split('\n').map((s) => s.trim()).filter(Boolean),
+    applicationSteps: Array.isArray(body.applicationSteps)
+      ? body.applicationSteps
+      : (body.applicationSteps || '').split('\n').map((s) => s.trim()).filter(Boolean),
     eligibilityCriteria: Array.isArray(body.eligibilityCriteria) ? body.eligibilityCriteria : [],
-    sources: Array.isArray(body.sources) && body.sources.length > 0 ? body.sources : [
-      {
-        documentId: `doc-${slug}`,
-        title: body.sourceTitle || `${body.name} Official Guidelines`,
-        sourceUrl: body.officialUrl || '',
-        department: body.department,
-        publicationDate: new Date().toISOString().split('T')[0],
-      },
-    ],
+    sources:
+      Array.isArray(body.sources) && body.sources.length > 0
+        ? body.sources
+        : [
+            {
+              documentId: `doc-${slug}`,
+              title: body.sourceTitle || `${body.name} Official Guidelines`,
+              sourceUrl: body.officialUrl || '',
+              department: body.department,
+              publicationDate: new Date().toISOString().split('T')[0],
+            },
+          ],
     officialUrl: body.officialUrl?.trim() || undefined,
     effectiveDate: body.effectiveDate || new Date().toISOString().split('T')[0],
     lastVerifiedDate: new Date().toISOString().split('T')[0],
@@ -130,15 +149,24 @@ export async function POST(request: NextRequest) {
     // 1. Save schemes to persistent store
     saveCustomSchemes(validSchemes);
 
-    // 2. Ingest and vector-embed immediately
-    const ingestResult = await ingestSchemes(validSchemes);
+    // 2. Ingest and vector-embed safely
+    let chunksIngested = 0;
+    let errors: string[] = [];
+    try {
+      const ingestResult = await ingestSchemes(validSchemes);
+      chunksIngested = ingestResult.chunksIngested;
+      errors = ingestResult.errors;
+    } catch (ingestErr) {
+      const msg = ingestErr instanceof Error ? ingestErr.message : String(ingestErr);
+      errors.push(`Vector embedding could not complete: ${msg}`);
+    }
 
     if (rawList.length === 1 && !Array.isArray(rawBody) && !Array.isArray(rawBody.schemes)) {
       return NextResponse.json({
         success: true,
         scheme: validSchemes[0],
-        chunksIngested: ingestResult.chunksIngested,
-        errors: ingestResult.errors,
+        chunksIngested,
+        errors,
       });
     }
 
@@ -146,13 +174,13 @@ export async function POST(request: NextRequest) {
       success: true,
       count: validSchemes.length,
       schemes: validSchemes,
-      chunksIngested: ingestResult.chunksIngested,
-      errors: ingestResult.errors,
+      chunksIngested,
+      errors,
     });
   } catch (error) {
-    console.error('Failed to create scheme:', error);
+    console.error('Failed to save scheme:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create scheme' },
+      { error: error instanceof Error ? error.message : 'Failed to save scheme' },
       { status: 500 }
     );
   }
@@ -175,5 +203,14 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Scheme not found or cannot delete baseline scheme' }, { status: 404 });
   }
 
-  return NextResponse.json({ success: true, deletedId: id });
+  // Remove corresponding vector embeddings from vector store
+  let vectorsRemoved = 0;
+  try {
+    const store = getVectorStore();
+    vectorsRemoved = await store.removeBySchemeId(id);
+  } catch (vecErr) {
+    console.warn(`[Admin DELETE] Could not clean up vectors for ${id}:`, vecErr);
+  }
+
+  return NextResponse.json({ success: true, deletedId: id, vectorsRemoved });
 }

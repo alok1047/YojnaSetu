@@ -112,14 +112,43 @@ class LocalVectorStore {
 
     const json = JSON.stringify(data);
 
-    // Atomic write: write to a temp file in the same directory, then rename
+    // Atomic write: write to a temp file in the same directory, then rename with copy fallback
     const tmpPath = path.join(
-      os.tmpdir(),
-      `vector-store-${Date.now()}-${Math.random().toString(36).slice(2)}.json`
+      dir,
+      `.vector-store-${Date.now()}-${Math.random().toString(36).slice(2)}.tmp`
     );
 
     fs.writeFileSync(tmpPath, json, 'utf-8');
-    fs.renameSync(tmpPath, this.filePath);
+    try {
+      fs.renameSync(tmpPath, this.filePath);
+    } catch {
+      fs.copyFileSync(tmpPath, this.filePath);
+      try {
+        fs.unlinkSync(tmpPath);
+      } catch {
+        // ignore cleanup error
+      }
+    }
+  }
+
+  /**
+   * Remove all entries matching a schemeId and persist changes.
+   * Returns the count of removed vector entries.
+   */
+  async removeBySchemeId(schemeId: string): Promise<number> {
+    await this.load();
+    const initialCount = this.entries.length;
+    this.entries = this.entries.filter(
+      (entry) =>
+        entry.metadata.schemeId !== schemeId &&
+        entry.metadata.documentId !== schemeId &&
+        !entry.id.startsWith(schemeId)
+    );
+    const removedCount = initialCount - this.entries.length;
+    if (removedCount > 0) {
+      await this.save();
+    }
+    return removedCount;
   }
 
   /**

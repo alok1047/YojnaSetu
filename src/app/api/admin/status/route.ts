@@ -19,17 +19,38 @@ export async function GET(request: NextRequest) {
     const store = getVectorStore();
     const chunksCount = await store.count();
 
-    const hasOpenAI = Boolean(process.env.OPENAI_API_KEY);
     const hasGemini = Boolean(process.env.GEMINI_API_KEY);
+    const hasOpenAI = Boolean(process.env.OPENAI_API_KEY);
+
+    let aiProvider = 'none';
+    let model = 'Not Configured';
+    let embeddingModel = 'None';
+    let dimensions = 0;
+    let baseUrl = 'Configure .env.local';
+
+    if (hasGemini) {
+      aiProvider = 'gemini';
+      model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+      embeddingModel = process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004';
+      dimensions = 768;
+      baseUrl = 'Google Generative AI';
+    } else if (hasOpenAI) {
+      aiProvider = 'openai';
+      model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+      embeddingModel = process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small';
+      dimensions = 1536;
+      baseUrl = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
+    }
 
     return NextResponse.json({
       schemesCount: all.length,
       customSchemesCount: custom.length,
       chunksCount,
-      aiProvider: hasOpenAI ? 'openai' : hasGemini ? 'gemini' : 'none',
-      model: process.env.OPENAI_MODEL || process.env.GEMINI_MODEL || 'none',
-      embeddingModel: process.env.OPENAI_EMBEDDING_MODEL || process.env.GEMINI_EMBEDDING_MODEL || 'none',
-      baseUrl: process.env.OPENAI_BASE_URL || 'default',
+      aiProvider,
+      model,
+      embeddingModel,
+      dimensions,
+      baseUrl,
     });
   } catch (error) {
     console.error('Admin status error:', error);

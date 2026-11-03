@@ -2,7 +2,7 @@ import type { Scheme } from '@/lib/types';
 import type { VectorEntry } from '@/lib/vectorstore';
 import { chunkScheme } from '@/lib/ingestion/chunker';
 import { getVectorStore } from '@/lib/vectorstore';
-import { createAIProvider } from '@/lib/ai/provider';
+import { createAIProvider, type AIProvider } from '@/lib/ai/provider';
 
 export interface IngestResult {
   chunksIngested: number;
@@ -45,8 +45,16 @@ export async function ingestSchemes(
     return { chunksIngested: 0, errors };
   }
 
-  // Step 2: Create AI provider for embeddings
-  const provider = createAIProvider();
+  // Step 2: Create AI provider for embeddings safely
+  let provider: AIProvider;
+  try {
+    provider = createAIProvider();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    errors.push(`AI embedding skipped: ${msg}`);
+    return { chunksIngested: 0, errors };
+  }
+
   const store = getVectorStore();
 
   // Step 3: Process in batches

@@ -28,7 +28,7 @@ Respond ONLY with a valid JSON object matching this exact format (no markdown fo
   "name": "Full official scheme name",
   "category": "one of the valid categories above",
   "department": "Ministry or Department issuing the scheme",
-  "jurisdiction": "Central or state name",
+  "jurisdiction": "Central or specific state name",
   "targetGroup": "Key target beneficiary group",
   "summary": "Concise 2-3 sentence summary of what the scheme provides",
   "description": "Detailed explanation of scheme objectives, funding, and scope",
@@ -46,7 +46,15 @@ Respond ONLY with a valid JSON object matching this exact format (no markdown fo
     "Step 2: Verification process",
     "Step 3: Disbursement"
   ],
-  "officialUrl": "Official website URL if mentioned or leave empty string",
+  "minAge": null,
+  "maxAge": null,
+  "maxIncome": null,
+  "gender": "any",
+  "casteCategory": "all",
+  "isStudent": null,
+  "isDisabled": null,
+  "isBPL": null,
+  "officialUrl": "Official website URL if mentioned or empty string",
   "sourceTitle": "Title of the gazette circular or guidelines document"
 }`;
 
@@ -61,6 +69,20 @@ export async function POST(request: NextRequest) {
 
     if (!file || !(file instanceof Blob)) {
       return NextResponse.json({ error: 'Please upload a valid PDF document.' }, { status: 400 });
+    }
+
+    // Check if AI provider is available before reading file
+    let provider;
+    try {
+      provider = createAIProvider();
+    } catch {
+      return NextResponse.json(
+        {
+          error:
+            'AI Provider is not configured. Please add GEMINI_API_KEY (or OPENAI_API_KEY) in your .env.local file to enable AI PDF extraction.',
+        },
+        { status: 400 }
+      );
     }
 
     // Extract text using unpdf
@@ -79,7 +101,6 @@ export async function POST(request: NextRequest) {
     // Truncate to first ~12,000 characters to stay within fast context limits
     const truncatedText = rawText.slice(0, 12000);
 
-    const provider = createAIProvider();
     const response = await provider.complete({
       systemPrompt: EXTRACT_PROMPT,
       userMessage: `Analyze this government document and extract structured scheme details:\n\n${truncatedText}`,

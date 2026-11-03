@@ -9,7 +9,7 @@ function checkAuth(request: NextRequest): boolean {
 }
 
 /**
- * Split long document text into ~300-500 character chunks respecting paragraph boundaries.
+ * Split long document text into ~400-800 character chunks respecting paragraph boundaries.
  */
 function splitIntoParagraphChunks(text: string, title: string): string[] {
   const paragraphs = text
@@ -21,6 +21,18 @@ function splitIntoParagraphChunks(text: string, title: string): string[] {
   let current = '';
 
   for (const para of paragraphs) {
+    // If a single paragraph is excessively long (> 1000 chars), break it up
+    if (para.length > 1000) {
+      if (current) {
+        chunks.push(`Document: ${title}\n\n${current}`);
+        current = '';
+      }
+      for (let i = 0; i < para.length; i += 800) {
+        chunks.push(`Document: ${title}\n\n${para.slice(i, i + 800)}`);
+      }
+      continue;
+    }
+
     if ((current + '\n\n' + para).length > 800) {
       if (current) chunks.push(`Document: ${title}\n\n${current}`);
       current = para;
@@ -52,6 +64,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let provider;
+    try {
+      provider = createAIProvider();
+    } catch {
+      return NextResponse.json(
+        {
+          error:
+            'AI Provider is not configured. Set GEMINI_API_KEY (or OPENAI_API_KEY) in .env.local to enable document embedding.',
+        },
+        { status: 400 }
+      );
+    }
+
     const docId = `doc-custom-${Date.now().toString(36)}`;
     const textChunks = splitIntoParagraphChunks(content, title);
 
@@ -59,7 +84,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Could not extract valid text passages from content.' }, { status: 400 });
     }
 
-    const provider = createAIProvider();
     const store = getVectorStore();
 
     // Embed in batches of 20

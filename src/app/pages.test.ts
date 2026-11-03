@@ -7,6 +7,7 @@ import SchemeDetailPage, {
 import AskPage, { metadata as askMetadata } from './ask/page';
 import EligibilityPage, { metadata as eligibilityMetadata } from './eligibility/page';
 import AboutPage, { metadata as aboutMetadata } from './about/page';
+import AdminPage, { metadata as adminMetadata } from './admin/page';
 import { SAMPLE_SCHEMES } from '@/lib/data/sample-schemes';
 
 describe('App Router Pages', () => {
@@ -89,6 +90,18 @@ describe('App Router Pages', () => {
 
     it('renders server component', () => {
       const page = AboutPage();
+      expect(page).toBeDefined();
+    });
+  });
+
+  describe('Admin Console (/admin)', () => {
+    it('exports proper admin metadata', () => {
+      expect(adminMetadata.title).toBe('Admin Document Ingestion & Scheme Manager | YojnaSetu');
+      expect(adminMetadata.description).toBeTruthy();
+    });
+
+    it('renders admin server component without crashing', () => {
+      const page = AdminPage();
       expect(page).toBeDefined();
     });
   });
